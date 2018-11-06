@@ -2,6 +2,8 @@
 
 namespace Globalis\WP\Cubi\Robo;
 
+use Globalis\Robo\Core\Command;
+
 trait DeployTrait
 {
     public function deploy($environment, $gitRevision, $options = ['ignore-assets' => false])
@@ -22,14 +24,16 @@ trait DeployTrait
         $this->deployWriteState(self::trailingslashit($buildDirectory) . 'deploy', $gitRevision);
 
         // 1. Dry Run
-        $this->rsyncDeploy($buildDirectory, $config['REMOTE_HOSTNAME'], $config['REMOTE_USERNAME'], $config['REMOTE_PATH'], $config['REMOTE_PORT'], $options['ignore-assets'], true);
+        $output = $this->rsyncDeploy($buildDirectory, $config['REMOTE_HOSTNAME'], $config['REMOTE_USERNAME'], $config['REMOTE_PATH'], $config['REMOTE_PORT'], $options['ignore-assets'], true);
 
         if ($this->io()->confirm('Do you want to run ?', false)) {
             // 2. Run
-            $this->rsyncDeploy($buildDirectory, $config['REMOTE_HOSTNAME'], $config['REMOTE_USERNAME'], $config['REMOTE_PATH'], $config['REMOTE_PORT'], $options['ignore-assets'], false);
+            $output = $this->rsyncDeploy($buildDirectory, $config['REMOTE_HOSTNAME'], $config['REMOTE_USERNAME'], $config['REMOTE_PATH'], $config['REMOTE_PORT'], $options['ignore-assets'], false);
         }
 
         $this->taskDeleteDir($buildDirectory)->run();
+
+        return $output;
     }
 
     protected function rsyncDeploy($fromPath, $toHost, $toUser, $toPath, $remotePort, $ignoreAssets, $dryRun)
@@ -37,7 +41,7 @@ trait DeployTrait
         $chmod       = 'Du=rwx,Dgo=rx,Fu=rw,Fgo=r';
         $excludeFrom = self::trailingslashit($fromPath) . '.rsyncignore';
         $delete      = true;
-        $this->rsync(null, null, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun);
+        return $this->rsync(null, null, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun);
     }
 
     protected function deployWriteState($directory, $gitRevision)
@@ -155,7 +159,7 @@ trait DeployTrait
 
         if ($this->io()->confirm('Do you want to run ?', false)) {
             // 2. Run
-            $this->rsyncMedia($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $config['REMOTE_PORT'], false, $delete);
+            return $this->rsyncMedia($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $config['REMOTE_PORT'], false, $delete);
         }
     }
 
@@ -164,7 +168,7 @@ trait DeployTrait
         $chmod        = false;
         $excludeFrom  = false;
         $ignoreAssets = false;
-        $this->rsync($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun);
+        return $this->rsync($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun);
     }
 
     protected function rsync($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun)
@@ -212,6 +216,12 @@ trait DeployTrait
             $cmd->dryRun();
         }
 
-        $cmd->run();
+        $cmd     = new Command($cmd->getCommand());
+        $process = $cmd->executeWithoutException();
+        $output  = $process->getOutput();
+
+        echo $output;
+
+        return $output;
     }
 }
