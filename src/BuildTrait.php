@@ -85,5 +85,7 @@ trait BuildTrait
          ->startDelimiter($startPlaceholder)
          ->endDelimiter($endPlaceholder)
          ->run();
+
+        return $pathBuild;
     }
 }
