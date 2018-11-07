@@ -24,12 +24,18 @@ trait DeployTrait
         // 1. Dry Run
         $this->rsyncDeploy($buildDirectory, $config['REMOTE_HOSTNAME'], $config['REMOTE_USERNAME'], $config['REMOTE_PATH'], $config['REMOTE_PORT'], $options['ignore-assets'], true);
 
+        $deployed = false;
+
         if ($this->io()->confirm('Do you want to run ?', false)) {
             // 2. Run
             $this->rsyncDeploy($buildDirectory, $config['REMOTE_HOSTNAME'], $config['REMOTE_USERNAME'], $config['REMOTE_PATH'], $config['REMOTE_PORT'], $options['ignore-assets'], false);
+
+            $deployed = true;
         }
 
         $this->taskDeleteDir($buildDirectory)->run();
+
+        return $deployed;
     }
 
     protected function rsyncDeploy($fromPath, $toHost, $toUser, $toPath, $remotePort, $ignoreAssets, $dryRun)
@@ -153,10 +159,16 @@ trait DeployTrait
         // 1. Dry Run
         $this->rsyncMedia($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $config['REMOTE_PORT'], true, $delete);
 
+        $deployed = false;
+
         if ($this->io()->confirm('Do you want to run ?', false)) {
             // 2. Run
             $this->rsyncMedia($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $config['REMOTE_PORT'], false, $delete);
+
+            $deployed = true;
         }
+
+        return $deployed;
     }
 
     protected function rsyncMedia($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $remotePort, $dryRun, $delete)
