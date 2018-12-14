@@ -14,7 +14,7 @@ trait GitTrait
      */
     public function featureStart($name)
     {
-        return $this->taskFeatureStart($name)->run();
+        return $this->taskFeatureStart($name);
     }
 
     /**
@@ -24,7 +24,7 @@ trait GitTrait
      */
     public function featureFinish($name)
     {
-        return $this->taskFeatureFinish($name)->run();
+        return $this->taskFeatureFinish($name);
     }
 
     /**
@@ -41,7 +41,7 @@ trait GitTrait
         } else {
             $version = $options['semversion'];
         }
-        return $this->taskHotfixStart((string)$version)->run();
+        return $this->taskHotfixStart((string)$version);
     }
 
     /**
@@ -58,7 +58,7 @@ trait GitTrait
         } else {
             $version = $options['semversion'];
         }
-        return $this->taskHotfixFinish((string)$version)->run();
+        return $this->taskHotfixFinish((string)$version);
     }
 
     /**
@@ -75,7 +75,7 @@ trait GitTrait
         } else {
             $version = $options['semversion'];
         }
-        return $this->taskReleaseStart((string)$version)->run();
+        return $this->taskReleaseStart((string)$version);
     }
 
     /**
@@ -92,7 +92,7 @@ trait GitTrait
         } else {
             $version = $options['semversion'];
         }
-        return $this->taskReleaseFinish((string)$version)->run();
+        return $this->taskReleaseFinish((string)$version);
     }
 
     protected function gitInit()
@@ -106,7 +106,7 @@ trait GitTrait
              ->exec('init')
              ->run();
 
-             $this->io()->newLine();
+            $this->io()->newLine();
 
             $commitMessage = $this->io()->ask('Initial commit message', 'Initial commit');
 

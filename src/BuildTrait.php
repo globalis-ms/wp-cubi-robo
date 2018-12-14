@@ -6,13 +6,16 @@ trait BuildTrait
 {
     public function build($environment = 'development', $root = \RoboFile::ROOT, $ignore_assets = false)
     {
-        $this->buildComposer($environment, $root);
-        $this->buildConfig($environment, $root);
-        $this->buildHtaccess($environment, $root);
+        $task = $this->collectionBuilder()
+            ->addTask($this->buildComposer($environment, $root))
+            ->addTask($this->buildConfig($environment, $root))
+            ->addTask($this->buildHtaccess($environment, $root));
 
         if (!$ignore_assets && method_exists($this, 'buildAssets')) {
-            $this->buildAssets($environment, $root);
+            $task->addTask($this->buildAssets($environment, $root));
         }
+
+        return $task;
     }
 
     public function buildComposer($environment = 'development', $root = \RoboFile::ROOT)
@@ -26,36 +29,38 @@ trait BuildTrait
             ->optimizeAutoloader();
         }
 
-        $task->run();
+        return $task;
     }
 
     public function buildConfig($environment = 'development', $root = \RoboFile::ROOT)
     {
-        $fileVarsLocal = $this->fileVarsLocal($environment, $root);
+        return $this->collectionBuilder()
+            ->addCode(function () use ($environment, $root) {
+                $fileVarsLocal = $this->fileVarsLocal($environment, $root);
+                if (!file_exists($fileVarsLocal)) {
+                    $this->io()->section('ENVIRONMENT CONFIGURATION');
+                    $this->io()->text(sprintf('Answer a few questions to setup project configuration for environment: %s', $environment));
+                    $this->io()->text('Configuration will be saved at ' . $fileVarsLocal);
+                    if ('development' === $environment) {
+                        $this->io()->text('You can change configuration later by manually editing this file, or by running `./vendor/bin/robo configure`');
+                    } else {
+                        $this->io()->text(sprintf('You can change configuration later by manually editing this file, or by running `./vendor/bin/robo configure %s`', $environment));
+                    }
+                }
 
-        if (!file_exists($fileVarsLocal)) {
-            $this->io()->section('ENVIRONMENT CONFIGURATION');
-            $this->io()->text(sprintf('Answer a few questions to setup project configuration for environment: %s', $environment));
-            $this->io()->text('Configuration will be saved at ' . $fileVarsLocal);
-            if ('development' === $environment) {
-                $this->io()->text('You can change configuration later by manually editing this file, or by running `./vendor/bin/robo configure`');
-            } else {
-                $this->io()->text(sprintf('You can change configuration later by manually editing this file, or by running `./vendor/bin/robo configure %s`', $environment));
-            }
-        }
+                $this->getConfig($environment);
 
-        $this->getConfig($environment);
+                $target = self::trailingslashit($root) . \RoboFile::PATH_FILE_CONFIG_VARS;
+                if (!file_exists($target)) {
+                    copy($fileVarsLocal, $target);
+                }
 
-        $target = self::trailingslashit($root) . \RoboFile::PATH_FILE_CONFIG_VARS;
-        if (!file_exists($target)) {
-            copy($fileVarsLocal, $target);
-        }
-
-        $target = self::trailingslashit($root) . \RoboFile::PATH_FILE_CONFIG_LOCAL;
-        if (!file_exists($target)) {
-            $source = self::trailingslashit(\RoboFile::ROOT) . \RoboFile::PATH_FILE_CONFIG_LOCAL_SAMPLE;
-            copy($source, $target);
-        }
+                $target = self::trailingslashit($root) . \RoboFile::PATH_FILE_CONFIG_LOCAL;
+                if (!file_exists($target)) {
+                    $source = self::trailingslashit(\RoboFile::ROOT) . \RoboFile::PATH_FILE_CONFIG_LOCAL_SAMPLE;
+                    copy($source, $target);
+                }
+            });
     }
 
     public function buildHtaccess($environment = 'development', $root = \RoboFile::ROOT, $startPlaceholder = '<##', $endPlaceholder = '##>')
@@ -72,20 +77,19 @@ trait BuildTrait
                 $parts[] = $pathSrc . '/' . $part;
             }
         }
-
-        $this->taskConcat($parts)
-        ->to($pathBuild)
-        ->run();
-
         $config = $this->getConfig($environment);
 
-        $this->taskReplacePlaceholders($pathBuild)
-         ->from(array_keys($config))
-         ->to($config)
-         ->startDelimiter($startPlaceholder)
-         ->endDelimiter($endPlaceholder)
-         ->run();
-
-        return $pathBuild;
+        return $this->collectionBuilder()
+            ->addTask(
+                $this->taskConcat($parts)
+                    ->to($pathBuild)
+            )
+            ->addTask(
+                $this->taskReplacePlaceholders($pathBuild)
+                    ->from(array_keys($config))
+                    ->to($config)
+                    ->startDelimiter($startPlaceholder)
+                    ->endDelimiter($endPlaceholder)
+            );
     }
 }

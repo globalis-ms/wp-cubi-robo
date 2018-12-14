@@ -7,20 +7,40 @@ class RoboFile extends \Globalis\Robo\Tasks
     protected $properties = [];
     protected $config     = [];
 
+    /**
+     * Configure project
+     *
+     * @param   string  $environment
+     * @option  boolean only-missing
+     */
     public function configure($environment = 'development', $options = ['only-missing' => false])
     {
-        if (!isset($this->config[$environment])) {
-            $this->config[$environment] = $this->taskConfiguration()
-                ->initConfig($this->getProperties($environment))
-                ->configFilePath($this->fileVarsLocal($environment))
-                ->force(!$options['only-missing'])
-                ->run()
-                ->getData();
+        return $this->collectionBuilder()
+            ->addTask($this->loadConfigTask($environment, $options['only-missing']));
+    }
 
-            foreach ($this->config[$environment] as $key => $value) {
-                $this->config[$environment][$key . '_PQ'] = preg_quote($value);
-            }
+    protected function loadConfigTask($environment, $onlyMissing = true)
+    {
+        $tasks = $this->collectionBuilder();
+        if (isset($this->config[$environment])) {
+            $tasks;
         }
+        return $tasks
+            ->addTask(
+                $this->taskConfiguration()
+                    ->initConfig($this->getProperties($environment))
+                    ->configFilePath($this->fileVarsLocal($environment))
+                    ->force(!$options['only-missing'])
+            )
+            ->addCode(function ($data) use ($environment) {
+                $this->config[$environment] = $data->getData();
+                foreach ($this->config[$environment] as $key => $value) {
+                    $this->config[$environment][$key . '_PQ'] = preg_quote($value);
+                }
+                if (method_exists($this, 'postLoadConfig')) {
+                    $this->postLoadConfig($environment);
+                }
+            });
     }
 
     protected function getConfig($environment, $key = null)
