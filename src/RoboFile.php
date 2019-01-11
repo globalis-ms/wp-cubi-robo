@@ -18,7 +18,9 @@ class RoboFile extends \Globalis\Robo\Tasks
                 ->getData();
 
             foreach ($this->config[$environment] as $key => $value) {
-                $this->config[$environment][$key . '_PQ'] = preg_quote($value);
+                if (is_string($value)) {
+                    $this->config[$environment][$key . '_PQ'] = preg_quote($value);
+                }
             }
         }
     }
