@@ -65,9 +65,10 @@ trait BuildTrait
         $parts     = [];
 
         foreach (\RoboFile::HTACCESS_PARTS as $part) {
-            $partOverriden = $pathSrc . '/' . $part . '-' . $environment;
-            if (file_exists($partOverriden)) {
-                $parts[] = $partOverriden;
+            if (file_exists($pathSrc . '/' . $part . '-local')) {
+                $parts[] = $pathSrc . '/' . $part . '-local';
+            } elseif (file_exists($pathSrc . '/' . $part . '-' . $environment)) {
+                $parts[] = $pathSrc . '/' . $part . '-' . $environment;
             } else {
                 $parts[] = $pathSrc . '/' . $part;
             }
