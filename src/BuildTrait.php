@@ -79,6 +79,12 @@ trait BuildTrait
 
         $config = $this->getConfig($environment);
 
+        foreach ($config as $key => $value) {
+            if (!is_string($value)) {
+                unset($config[$key]);
+            }
+        }
+
         $this->taskReplacePlaceholders($pathBuild)
          ->from(array_keys($config))
          ->to($config)
