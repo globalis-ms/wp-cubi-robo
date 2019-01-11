@@ -38,12 +38,12 @@ trait DeployTrait
         return $deployed;
     }
 
-    protected function rsyncDeploy($fromPath, $toHost, $toUser, $toPath, $remotePort, $ignoreAssets, $dryRun)
+    protected function rsyncDeploy($fromPath, $toHost, $toUser, $toPath, $remotePort, $ignoreAssets, $dryRun, $verbose = true)
     {
         $chmod       = 'Du=rwx,Dgo=rx,Fu=rw,Fgo=r';
         $excludeFrom = self::trailingslashit($fromPath) . '.rsyncignore';
         $delete      = true;
-        $this->rsync(null, null, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun);
+        $this->rsync(null, null, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun, $verbose);
     }
 
     protected function deployWriteState($directory, $gitRevision)
@@ -179,7 +179,7 @@ trait DeployTrait
         $this->rsync($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun);
     }
 
-    protected function rsync($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun)
+    protected function rsync($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun, $verbose = true)
     {
         $cmd = $this->taskRsync()
             ->fromHost($fromHost)
@@ -189,15 +189,20 @@ trait DeployTrait
             ->toUser($toUser)
             ->toPath(self::trailingslashit($toPath))
             ->option('rsh', 'ssh -p ' . $remotePort)
-            ->verbose()
             ->recursive()
             ->checksum()
             ->compress()
-            ->itemizeChanges()
             ->excludeVcs()
-            ->progress()
             ->option('copy-links')
             ->stats();
+
+        if ($verbose) {
+            $cmd->verbose();
+            $cmd->itemizeChanges();
+            $cmd->progress();
+        } else {
+            $cmd->option('quiet');
+        }
 
         if ($ignoreAssets) {
             foreach (\RoboFile::PATH_FILES_BUILD_ASSETS as $assetPath) {
