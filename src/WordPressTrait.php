@@ -72,9 +72,8 @@ trait WordPressTrait
 
     protected function wpInitConfigFile($startPlaceholder = '<##', $endPlaceholder = '##>')
     {
-        $settings                     = [];
-        $settings['DB_PREFIX']        = $this->io()->ask('Database prefix', 'cubi_');
-        $settings['WP_DEFAULT_THEME'] = $this->io()->ask('Default theme slug (you can change it later in ./config/application.php)', 'my-theme');
+        $settings              = [];
+        $settings['DB_PREFIX'] = $this->io()->ask('Database prefix', 'cubi_');
 
         $this->taskReplacePlaceholders(self::trailingslashit(\RoboFile::ROOT) . \RoboFile::PATH_FILE_CONFIG_APPLICATION)
          ->from(array_keys($settings))
