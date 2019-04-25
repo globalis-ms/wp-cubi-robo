@@ -69,7 +69,7 @@ trait BuildTrait
                 $parts[] = $pathSrc . '/' . $part . '-local';
             } elseif (file_exists($pathSrc . '/' . $part . '-' . $environment)) {
                 $parts[] = $pathSrc . '/' . $part . '-' . $environment;
-            } else {
+            } elseif (file_exists($pathSrc . '/' . $part)) {
                 $parts[] = $pathSrc . '/' . $part;
             }
         }
