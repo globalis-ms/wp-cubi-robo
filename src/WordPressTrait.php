@@ -310,7 +310,7 @@ trait WordPressTrait
 
         $post_ids = $cmd->getOutput();
 
-        if(empty($post_ids)) {
+        if (empty($post_ids)) {
             return;
         }
 
