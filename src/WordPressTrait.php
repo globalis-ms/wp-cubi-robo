@@ -301,18 +301,25 @@ trait WordPressTrait
             ->arg('blogdescription')
             ->execute();
 
-        self::wpCli()
+        $cmd = self::wpCli()
             ->arg('post')
-            ->arg('delete')
-            ->arg('1')
-            ->option('force')
+            ->arg('list')
+            ->option('post_type=', 'any', '=')
+            ->option('format', 'ids', '=')
             ->execute();
 
-        self::wpCli()
+        $post_ids = $cmd->getOutput();
+
+        if (empty($post_ids)) {
+            return;
+        }
+
+        $cmd = self::wpCli()
             ->arg('post')
             ->arg('delete')
-            ->arg('2')
+            ->arg(explode(' ', $post_ids))
             ->option('force')
+            ->option('quiet')
             ->execute();
     }
 
