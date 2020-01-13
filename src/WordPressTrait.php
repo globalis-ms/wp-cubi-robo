@@ -295,6 +295,9 @@ trait WordPressTrait
 
     protected function wpClean()
     {
+        $this->taskDeleteDir(\RoboFile::ROOT . '/web/app/uploads')->run();
+        $this->taskDeleteDir(\RoboFile::ROOT . '/web/app/upgrade')->run();
+
         self::wpCli()
             ->arg('option')
             ->arg('update')
