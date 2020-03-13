@@ -9,20 +9,32 @@ class RoboFile extends \Globalis\Robo\Tasks
 
     public function configure($environment = 'development', $options = ['only-missing' => false])
     {
-        if (!isset($this->config[$environment])) {
-            $this->config[$environment] = $this->taskConfiguration()
-                ->initConfig($this->getProperties($environment))
-                ->configFilePath($this->fileVarsLocal($environment))
-                ->force(!$options['only-missing'])
-                ->run()
-                ->getData();
+        return $this->collectionBuilder()
+            ->addTask($this->loadConfigTask($environment, $options['only-missing']));
+    }
 
-            foreach ($this->config[$environment] as $key => $value) {
-                if (is_string($value)) {
-                    $this->config[$environment][$key . '_PQ'] = preg_quote($value);
-                }
-            }
+    protected function loadConfigTask($environment = 'development', $options = ['only-missing' => false])
+    {
+        $tasks = $this->collectionBuilder();
+        if (isset($this->config[$environment])) {
+            $tasks;
         }
+
+        return $tasks
+            ->addTask(
+                $this->taskConfiguration()
+                    ->initConfig($this->getProperties($environment))
+                    ->configFilePath($this->fileVarsLocal($environment))
+                    ->force(!$options['only-missing'])
+            )
+            ->addCode(function ($data) use ($environment) {
+                $this->config[$environment] = $data->getData();
+                foreach ($this->config[$environment] as $key => $value) {
+                    if (is_string($value)) {
+                        $this->config[$environment][$key . '_PQ'] = preg_quote($value);
+                    }
+                }
+            });
     }
 
     protected function getConfig($environment, $key = null)
@@ -36,7 +48,7 @@ class RoboFile extends \Globalis\Robo\Tasks
         if (!isset($this->properties[$environment])) {
             $this->properties[$environment] = include \RoboFile::PATH_FILE_PROPERTIES;
 
-            if ('development' !== $environment) {
+            if (!$this->isLocalEnv($environment)) {
                 $propertiesRemote = include \RoboFile::PATH_FILE_PROPERTIES_REMOTE;
                 $this->properties[$environment] = array_merge($this->properties[$environment], $propertiesRemote);
             }
@@ -46,20 +58,15 @@ class RoboFile extends \Globalis\Robo\Tasks
 
     protected function fileVarsLocal($environment = 'development')
     {
-        if ('development' === $environment) {
-            return self::trailingslashit(\RoboFile::ROOT) . \RoboFile::PATH_FILE_CONFIG_VARS;
+        if ($this->isLocalEnv($environment)) {
+            return \Globalis\WP\Cubi\trailingslashit(\RoboFile::ROOT) . \RoboFile::PATH_FILE_CONFIG_VARS;
         } else {
-            return self::trailingslashit(\RoboFile::ROOT) . sprintf(\RoboFile::PATH_FILE_CONFIG_VARS_REMOTE, $environment);
+            return \Globalis\WP\Cubi\trailingslashit(\RoboFile::ROOT) . sprintf(\RoboFile::PATH_FILE_CONFIG_VARS_REMOTE, $environment);
         }
     }
 
-    protected static function trailingslashit($string)
+    protected function isLocalEnv($environment)
     {
-        return self::untrailingslashit($string) . '/';
-    }
-
-    protected static function untrailingslashit($string)
-    {
-        return rtrim($string, '/\\');
+        return in_array($environment, \RoboFile::LOCAL_ENVS);
     }
 }

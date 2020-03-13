@@ -42,7 +42,7 @@ trait WordPressTrait
 
     protected function wpGenerateSaltKeys($root = \RoboFile::ROOT)
     {
-        $target = self::trailingslashit($root) . \RoboFile::PATH_FILE_CONFIG_SALT_KEYS;
+        $target = \Globalis\WP\Cubi\trailingslashit($root) . \RoboFile::PATH_FILE_CONFIG_SALT_KEYS;
 
         if (file_exists($target)) {
             if ($this->io()->confirm(sprintf('%s already exists. Do you want to override it ?', $target), false)) {
@@ -75,7 +75,7 @@ trait WordPressTrait
         $settings              = [];
         $settings['DB_PREFIX'] = $this->io()->ask('Database prefix', 'cubi_');
 
-        $this->taskReplacePlaceholders(self::trailingslashit(\RoboFile::ROOT) . \RoboFile::PATH_FILE_CONFIG_APPLICATION)
+        $this->taskReplacePlaceholders(\Globalis\WP\Cubi\trailingslashit(\RoboFile::ROOT) . \RoboFile::PATH_FILE_CONFIG_APPLICATION)
          ->from(array_keys($settings))
          ->to($settings)
          ->startDelimiter($startPlaceholder)
