@@ -2,9 +2,18 @@
 
 namespace Globalis\WP\Cubi\Robo;
 
+use ConfigTrait;
+use BuildTrait;
+
 trait InstallTrait
 {
     public function install($options = ['setup-wordpress' => false])
+    {
+        return $this->collectionBuilder()
+            ->addTask($this->installTask($options['setup-wordpress']));
+    }
+
+    protected function installTask($setup_wordpress = false)
     {
         $task = $this->collectionBuilder()
             ->addTask($this->build());

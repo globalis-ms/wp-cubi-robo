@@ -2,96 +2,94 @@
 
 namespace Globalis\WP\Cubi\Robo;
 
+use ConfigTrait;
+
 trait BuildTrait
 {
-    public function build($environment = 'development', $root = \RoboFile::ROOT, $ignore_assets = false)
+    public function build()
     {
-        $task = $this->collectionBuilder()
-            ->addTask($this->buildComposer($environment, $root))
-            ->addTask($this->buildConfig($environment, $root))
-            ->addTask($this->buildHtaccess($environment, $root));
-
-        if (!$ignore_assets && method_exists($this, 'buildAssets')) {
-            $task->addTask($this->buildAssets($environment, $root));
-        }
-
-        return $task;
+        return $this->collectionBuilder()
+            ->addTask($this->buildTask());
     }
 
-    public function buildComposer($environment = 'development', $root = \RoboFile::ROOT)
+    public function buildComposer()
     {
-        $task = $this->taskComposerInstall()
+        return $this->collectionBuilder()
+            ->addTask($this->buildComposerTask());
+    }
+
+    public function buildHtaccess()
+    {
+        return $this->collectionBuilder()
+            ->addTask($this->buildHtaccessTask());
+    }
+
+    protected function buildTask($environment = 'development', $root = \RoboFile::ROOT)
+    {
+        return $this->collectionBuilder()
+            ->addTask($this->buildComposerTask($environment, $root))
+            ->addTask($this->buildHtaccessTask($environment, $root));
+    }
+
+    protected function buildComposerTask($environment = 'development', $root = \RoboFile::ROOT)
+    {
+        if($this->isLocalEnv($environment)) {
+            return $this->buildComposerLocalTask($environment, $root);
+        } else {
+            return $this->buildComposerRemoteTask($environment, $root);
+        }
+    }
+
+    protected function buildComposerLocalTask($environment = 'development')
+    {
+        return $this->taskComposerInstall()
             ->workingDir($root)
             ->preferDist();
+        }
+    }
 
-        if (!$this->isLocalEnv($environment)) {
-            $task->noDev()
+    protected function buildComposerRemoteTask($environment = 'development', $root = \RoboFile::ROOT)
+    {
+        return $this->taskComposerInstall()
+            ->workingDir($root)
+            ->preferDist()
+            ->noDev()
             ->optimizeAutoloader();
-        }
-
-        return $task;
     }
 
-    public function buildConfig($environment = 'development', $root = \RoboFile::ROOT)
+    protected function buildHtaccessTask($environment = 'development', $root = \RoboFile::ROOT, $startPlaceholder = '<##', $endPlaceholder = '##>')
     {
-        return $this->collectionBuilder()
-            ->addCode(function () use ($environment, $root) {
-                $fileVarsLocal = $this->fileVarsLocal($environment, $root);
-                if (!file_exists($fileVarsLocal)) {
-                    $this->io()->section('ENVIRONMENT CONFIGURATION');
-                    $this->io()->text(sprintf('Answer a few questions to setup project configuration for environment: %s', $environment));
-                    $this->io()->text('Configuration will be saved at ' . $fileVarsLocal);
-                    if ('development' === $environment) {
-                        $this->io()->text('You can change configuration later by manually editing this file, or by running `./vendor/bin/robo configure`');
-                    } else {
-                        $this->io()->text(sprintf('You can change configuration later by manually editing this file, or by running `./vendor/bin/robo configure %s`', $environment));
-                    }
-                }
-
-                $this->getConfig($environment);
-
-                $target = \Globalis\WP\Cubi\trailingslashit($root) . \RoboFile::PATH_FILE_CONFIG_VARS;
-                if (!file_exists($target)) {
-                    copy($fileVarsLocal, $target);
-                }
-            });
-    }
-
-    public function buildHtaccess($environment = 'development', $root = \RoboFile::ROOT, $startPlaceholder = '<##', $endPlaceholder = '##>')
-    {
-        $pathBuild = \Globalis\WP\Cubi\trailingslashit($root) . \RoboFile::HTACCESS_BUILD;
-        $pathSrc   = \Globalis\WP\Cubi\trailingslashit($root) . \RoboFile::HTACCESS_CONFIG_DIRECTORY;
-        $parts     = [];
-
-        foreach (\RoboFile::HTACCESS_PARTS as $part) {
-            if (file_exists($pathSrc . '/' . $part . '-local')) {
-                $parts[] = $pathSrc . '/' . $part . '-local';
-            } elseif (file_exists($pathSrc . '/' . $part . '-' . $environment)) {
-                $parts[] = $pathSrc . '/' . $part . '-' . $environment;
-            } elseif (file_exists($pathSrc . '/' . $part)) {
-                $parts[] = $pathSrc . '/' . $part;
-            }
-        }
-
-        $config = $this->getConfig($environment);
-
-        foreach ($config as $key => $value) {
-            if (!is_string($value)) {
-                unset($config[$key]);
-            }
-        }
+        $config = array_filter($this->getConfig($environment), 'is_string');
 
         return $this->collectionBuilder()
             ->addTask(
-                $this->taskConcat($parts)
-                    ->to($pathBuild)
+                $this->taskConcat($this->getHtaccessParts($environment, $root))
+                    ->to($this->path(RoboFile::HTACCESS_BUILD, $root))
             )
             ->addTask(
-                $this->taskReplacePlaceholders($pathBuild)
+                $this->taskReplacePlaceholders($this->path(RoboFile::HTACCESS_BUILD, $root))
                     ->from(array_keys($config))
                     ->to($config)
                     ->startDelimiter($startPlaceholder)
                     ->endDelimiter($endPlaceholder)
             );
+    }
+
+    protected function getHtaccessParts($environment = 'development', $root = \RoboFile::ROOT)
+    {
+        $dirSrc   = $this->untrailingslashit($this->path(RoboFile::HTACCESS_CONFIG_DIRECTORY, $root));
+        $parts    = [];
+
+        foreach (\RoboFile::HTACCESS_PARTS as $part) {
+            if (file_exists($dirSrc . '/' . $part . '-local')) {
+                $parts[] = $dirSrc . '/' . $part . '-local';
+            } elseif (file_exists($pathSrc . '/' . $part . '-' . $environment)) {
+                $parts[] = $dirSrc . '/' . $part . '-' . $environment;
+            } elseif (file_exists($pathSrc . '/' . $part)) {
+                $parts[] = $dirSrc . '/' . $part;
+            }
+        }
+
+        return $parts;
     }
 }
