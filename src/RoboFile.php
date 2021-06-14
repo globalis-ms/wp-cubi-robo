@@ -13,7 +13,7 @@ class RoboFile extends \Globalis\Robo\Tasks
             $this->config[$environment] = $this->taskConfiguration()
                 ->initConfig($this->getProperties($environment))
                 ->configFilePath($this->fileVarsLocal($environment))
-                ->force(!$options['only-missing'])
+                ->force(isset($options['only-missing']) ? !$options['only-missing'] : false)
                 ->run()
                 ->getData();
 
