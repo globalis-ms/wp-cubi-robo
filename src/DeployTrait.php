@@ -9,7 +9,7 @@ trait DeployTrait
         $this->io()->title('Deploy version ' . $gitRevision . ' to ' . $environment);
         $this->io()->text('You must answer a few questions about the remote environment:');
 
-        $this->configure($environment, false);
+        $this->configure($environment);
 
         $config         = $this->getConfig($environment);
         $collection     = $this->collectionBuilder();
@@ -70,7 +70,7 @@ trait DeployTrait
         $this->io()->title('Setup remote environment: ' . $environment);
         $this->io()->text('You must answer a few questions about the remote environment:');
 
-        $this->configure($environment, false);
+        $this->configure($environment);
 
         $config         = $this->getConfig($environment);
         $collection     = $this->collectionBuilder();
