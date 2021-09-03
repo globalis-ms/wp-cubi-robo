@@ -313,15 +313,37 @@ trait WordPressTrait
 
         $post_ids = $cmd->getOutput();
 
-        if (empty($post_ids)) {
-            return;
+        if (!empty($post_ids)) {
+            self::wpCli()
+                ->arg('post')
+                ->arg('delete')
+                ->arg(explode(' ', $post_ids))
+                ->option('force')
+                ->option('quiet')
+                ->execute();
         }
 
-        $cmd = self::wpCli()
-            ->arg('post')
-            ->arg('delete')
-            ->arg(explode(' ', $post_ids))
-            ->option('force')
+        self::wpCli()
+            ->arg('option')
+            ->arg('update')
+            ->arg('sidebars_widgets')
+            ->arg("'a:0:{}'")
+            ->option('quiet')
+            ->execute();
+
+        self::wpCli()
+            ->arg('option')
+            ->arg('update')
+            ->arg('widget_recent-posts')
+            ->arg("'a:0:{}'")
+            ->option('quiet')
+            ->execute();
+
+        self::wpCli()
+            ->arg('option')
+            ->arg('update')
+            ->arg('widget_recent-comments')
+            ->arg("'a:0:{}'")
             ->option('quiet')
             ->execute();
     }
