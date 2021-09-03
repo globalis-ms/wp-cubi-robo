@@ -7,9 +7,13 @@ trait DeployTrait
     public function deploy($environment, $gitRevision, $options = ['ignore-assets' => false])
     {
         $this->io()->title('Deploy version ' . $gitRevision . ' to ' . $environment);
-        $this->io()->text('You must answer a few questions about the remote environment:');
 
-        $this->configure($environment);
+        if (!file_exists($this->fileVarsLocal($environment)) || \RoboFile::CONFIRM_CONFIG_BEFORE_DEPLOY) {
+            $this->io()->text('You must answer a few questions about the remote environment:');
+            $this->configure($environment, ['only-missing' => false]);
+        } else {
+            $this->configure($environment, ['only-missing' => true]);
+        }
 
         $config         = $this->getConfig($environment);
         $collection     = $this->collectionBuilder();
