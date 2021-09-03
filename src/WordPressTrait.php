@@ -327,7 +327,7 @@ trait WordPressTrait
             ->arg('option')
             ->arg('update')
             ->arg('sidebars_widgets')
-            ->arg("'a:0:{}'")
+            ->arg('a:0:{}')
             ->option('quiet')
             ->execute();
 
@@ -335,7 +335,7 @@ trait WordPressTrait
             ->arg('option')
             ->arg('update')
             ->arg('widget_recent-posts')
-            ->arg("'a:0:{}'")
+            ->arg('a:0:{}')
             ->option('quiet')
             ->execute();
 
@@ -343,7 +343,7 @@ trait WordPressTrait
             ->arg('option')
             ->arg('update')
             ->arg('widget_recent-comments')
-            ->arg("'a:0:{}'")
+            ->arg('a:0:{}')
             ->option('quiet')
             ->execute();
     }
