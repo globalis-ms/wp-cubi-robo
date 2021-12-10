@@ -4,7 +4,7 @@ namespace Globalis\WP\Cubi\Robo;
 
 trait DeployTrait
 {
-    public function deploy($environment, $gitRevision, $options = ['ignore-assets' => false])
+    public function deploy($environment, $gitRevision, $options = ['ignore-assets' => false, 'ignore-composer' => false])
     {
         $this->io()->title('Deploy version ' . $gitRevision . ' to ' . $environment);
 
@@ -21,18 +21,18 @@ trait DeployTrait
 
         $this->gitExtractArchive($gitRevision, $buildDirectory);
 
-        $this->build($environment, $buildDirectory, $options['ignore-assets']);
+        $this->build($environment, $buildDirectory, $options['ignore-assets'], $options['ignore-composer']);
 
         $this->deployWriteState(self::trailingslashit($buildDirectory) . 'deploy', $gitRevision);
 
         // 1. Dry Run
-        $this->rsyncDeploy($buildDirectory, $config['REMOTE_HOSTNAME'], $config['REMOTE_USERNAME'], $config['REMOTE_PATH'], $config['REMOTE_PORT'], $options['ignore-assets'], true);
+        $this->rsyncDeploy($buildDirectory, $config['REMOTE_HOSTNAME'], $config['REMOTE_USERNAME'], $config['REMOTE_PATH'], $config['REMOTE_PORT'], $options['ignore-assets'], true, true, $options['ignore-composer']);
 
         $deployed = false;
 
         if ($this->io()->confirm('Do you want to run ?', false)) {
             // 2. Run
-            $this->rsyncDeploy($buildDirectory, $config['REMOTE_HOSTNAME'], $config['REMOTE_USERNAME'], $config['REMOTE_PATH'], $config['REMOTE_PORT'], $options['ignore-assets'], false);
+            $this->rsyncDeploy($buildDirectory, $config['REMOTE_HOSTNAME'], $config['REMOTE_USERNAME'], $config['REMOTE_PATH'], $config['REMOTE_PORT'], $options['ignore-assets'], false, true, $options['ignore-composer']);
 
             $deployed = true;
         }
@@ -42,12 +42,12 @@ trait DeployTrait
         return $deployed;
     }
 
-    protected function rsyncDeploy($fromPath, $toHost, $toUser, $toPath, $remotePort, $ignoreAssets, $dryRun, $verbose = true)
+    protected function rsyncDeploy($fromPath, $toHost, $toUser, $toPath, $remotePort, $ignoreAssets, $dryRun, $verbose = true, $ignore_composer = false)
     {
         $chmod       = 'Du=rwx,Dgo=rx,Fu=rw,Fgo=r';
         $excludeFrom = self::trailingslashit($fromPath) . '.rsyncignore';
         $delete      = true;
-        $this->rsync(null, null, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun, $verbose);
+        $this->rsync(null, null, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun, $verbose, $ignore_composer);
     }
 
     protected function deployWriteState($directory, $gitRevision)
@@ -183,7 +183,7 @@ trait DeployTrait
         $this->rsync($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun);
     }
 
-    protected function rsync($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun, $verbose = true)
+    protected function rsync($fromHost, $fromUser, $fromPath, $toHost, $toUser, $toPath, $remotePort, $delete, $chmod, $excludeFrom, $ignoreAssets, $dryRun, $verbose = true, $ignore_composer = false)
     {
         $cmd = $this->taskRsync()
             ->fromHost($fromHost)
@@ -211,6 +211,12 @@ trait DeployTrait
         if ($ignoreAssets) {
             foreach (\RoboFile::PATH_FILES_BUILD_ASSETS as $assetPath) {
                 $cmd->exclude($assetPath);
+            }
+        }
+
+        if($ignore_composer) {
+            foreach (\RoboFile::PATH_VENDORS as $vendorPath) {
+                $cmd->exclude($vendorPath);
             }
         }
 

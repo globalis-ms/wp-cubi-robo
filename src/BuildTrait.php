@@ -4,9 +4,11 @@ namespace Globalis\WP\Cubi\Robo;
 
 trait BuildTrait
 {
-    public function build($environment = 'development', $root = \RoboFile::ROOT, $ignore_assets = false)
+    public function build($environment = 'development', $root = \RoboFile::ROOT, $ignore_assets = false, $ignore_composer = false)
     {
-        $this->buildComposer($environment, $root);
+        if(!$ignore_composer) {
+            $this->buildComposer($environment, $root);
+        }
         $this->buildConfig($environment, $root);
         $this->buildHtaccess($environment, $root);
 
