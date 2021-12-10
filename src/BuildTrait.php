@@ -6,7 +6,7 @@ trait BuildTrait
 {
     public function build($environment = 'development', $root = \RoboFile::ROOT, $ignore_assets = false, $ignore_composer = false)
     {
-        if(!$ignore_composer) {
+        if (!$ignore_composer) {
             $this->buildComposer($environment, $root);
         }
         $this->buildConfig($environment, $root);

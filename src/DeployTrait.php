@@ -214,7 +214,7 @@ trait DeployTrait
             }
         }
 
-        if($ignore_composer) {
+        if ($ignore_composer) {
             foreach (\RoboFile::PATH_VENDORS as $vendorPath) {
                 $cmd->exclude($vendorPath);
             }
