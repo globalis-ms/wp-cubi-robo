@@ -6,6 +6,14 @@ trait DeployTrait
 {
     public function deploy($environment, $gitRevision, $options = ['ignore-assets' => false, 'ignore-composer' => false])
     {
+        if (!isset($options['ignore-assets'])) {
+            $options['ignore-assets'] = false;
+        }
+
+        if (!isset($options['ignore-composer'])) {
+            $options['ignore-composer'] = false;
+        }
+
         $this->io()->title('Deploy version ' . $gitRevision . ' to ' . $environment);
 
         if (!file_exists($this->fileVarsLocal($environment)) || \RoboFile::CONFIRM_CONFIG_BEFORE_DEPLOY) {
