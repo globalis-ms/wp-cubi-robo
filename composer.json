@@ -18,12 +18,12 @@
         "issues": "https://github.com/globalis-ms/wp-cubi-robo/issues"
     },
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.0",
         "globalis/robo-task": "^2.0.1",
         "rmccue/requests" : "^1.8.1"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "^3.6.0"
+        "squizlabs/php_codesniffer": "^3.7.1"
     },
     "autoload": {
         "psr-4": {
