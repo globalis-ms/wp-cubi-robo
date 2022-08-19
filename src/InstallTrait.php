@@ -10,6 +10,8 @@ trait InstallTrait
 
         if ($options['setup-wordpress']) {
             $this->wpInit();
+        } elseif (!file_exists(self::trailingslashit(\RoboFile::ROOT) . \RoboFile::PATH_FILE_CONFIG_SALT_KEYS)) {
+            $this->wpGenerateSaltKeys();
         }
 
         if (!is_dir(\RoboFile::ROOT . '/.git/')) {
