@@ -54,7 +54,7 @@ trait WordPressTrait
             }
         }
 
-        $response = \Requests::request($this->saltKeysUrl, [], [], 'GET', ['timeout' => 10]);
+        $response = \WpOrg\Requests\Requests::get($this->saltKeysUrl);
 
         if (200 === $response->status_code) {
             $salt_keys = $response->body;
