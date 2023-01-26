@@ -55,8 +55,8 @@ trait WordPressTrait
 
         $salt_keys = @file_get_contents($this->saltKeysUrl, false, null);
 
-        if (empty($response)) {
-            throw new Exception(sprintf('Couldn\'t fetch response from %s', $this->saltKeysUrl));
+        if (empty($salt_keys)) {
+            throw new \Exception(sprintf('Couldn\'t fetch response from %s', $this->saltKeysUrl));
         }
 
         $this->taskWriteToFile($target)
