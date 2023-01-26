@@ -6,7 +6,6 @@ use Globalis\Robo\Core\Command;
 
 trait WordPressTrait
 {
-
     private $saltKeysUrl     = 'https://api.wordpress.org/secret-key/1.1/salt/';
     private $wp_default_lang = 'en_US';
 
@@ -54,12 +53,10 @@ trait WordPressTrait
             }
         }
 
-        $response = \WpOrg\Requests\Requests::get($this->saltKeysUrl);
+        $salt_keys = @file_get_contents($this->saltKeysUrl, false, null);
 
-        if (200 === $response->status_code) {
-            $salt_keys = $response->body;
-        } else {
-            throw new Exception(sprintf('Couldn\'t fetch response from %s (HTTP code %s)', $this->saltKeysUrl, $response->status_code));
+        if (empty($response)) {
+            throw new Exception(sprintf('Couldn\'t fetch response from %s', $this->saltKeysUrl));
         }
 
         $this->taskWriteToFile($target)

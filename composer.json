@@ -19,8 +19,7 @@
     },
     "require": {
         "php": ">=8.0",
-        "globalis/robo-task": "^2.0.1",
-        "rmccue/requests" : "^2.0"
+        "globalis/robo-task": "^2.0.1"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.7.1"
