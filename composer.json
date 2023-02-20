@@ -18,8 +18,8 @@
         "issues": "https://github.com/globalis-ms/wp-cubi-robo/issues"
     },
     "require": {
-        "php": ">=8.0 <8.2",
-        "globalis/robo-task": "^2.0.1"
+        "php": ">=8.0 <8.3",
+        "globalis/robo-task": "^2.2.0"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.7.1"
