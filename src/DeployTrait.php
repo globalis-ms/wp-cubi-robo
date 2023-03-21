@@ -47,6 +47,8 @@ trait DeployTrait
 
         $this->taskDeleteDir($buildDirectory)->run();
 
+        // Run webhooks
+
         if ($deployed) {
             $site_url = $config['WEB_SCHEME'] . '://' . $config['WEB_DOMAIN'] . $config['WEB_PATH'];
 
@@ -72,6 +74,15 @@ trait DeployTrait
             if ($this->io()->confirm('Clear wp-cubi transient cache ?', true)) {
                 $this->sendWebhookHttpRequest($site_url, 'clear-wp-cubi-transient-cache');
             }
+
+            // Ping home url to generate new cache
+
+            $cmd = new Command('curl');
+            $cmd = $cmd->arg($site_url)
+                ->getCommand();
+
+            $this->taskExec($cmd)
+                ->run();
         }
 
         return $deployed;
