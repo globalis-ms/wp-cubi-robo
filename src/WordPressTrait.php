@@ -69,10 +69,18 @@ trait WordPressTrait
 
     protected function wpInitConfigFile($startPlaceholder = '<##', $endPlaceholder = '##>')
     {
-        $settings              = [];
+        $settings = [];
         $settings['DB_PREFIX'] = $this->io()->ask('Database prefix', 'cubi_');
+        $settings['WP_CUBI_WEBHOOKS_SECRET'] = bin2hex(random_bytes(16));
 
         $this->taskReplacePlaceholders(self::trailingslashit(\RoboFile::ROOT) . \RoboFile::PATH_FILE_CONFIG_APPLICATION)
+         ->from(array_keys($settings))
+         ->to($settings)
+         ->startDelimiter($startPlaceholder)
+         ->endDelimiter($endPlaceholder)
+         ->run();
+
+        $this->taskReplacePlaceholders(self::trailingslashit(\RoboFile::ROOT) . 'RoboFile.php')
          ->from(array_keys($settings))
          ->to($settings)
          ->startDelimiter($startPlaceholder)

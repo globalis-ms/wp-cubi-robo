@@ -47,6 +47,33 @@ trait DeployTrait
 
         $this->taskDeleteDir($buildDirectory)->run();
 
+        if ($deployed) {
+            $site_url = $config['WEB_SCHEME'] . '://' . $config['WEB_DOMAIN'] . $config['WEB_PATH'];
+
+            $this->io()->newLine();
+
+            if ($this->io()->confirm('Reset opcache ?', true)) {
+                $this->sendWebhookHttpRequest($site_url, 'reset-opcache');
+            }
+
+            $this->io()->newLine();
+
+            if ($this->io()->confirm('Clear statcache ?', true)) {
+                $this->sendWebhookHttpRequest($site_url, 'clear-statcache');
+            }
+
+            $this->io()->newLine();
+
+            if ($this->io()->confirm('Flush rewrite rules ?', true)) {
+                $this->sendWebhookHttpRequest($site_url, 'flush-rewrite-rules');
+            }
+
+
+            if ($this->io()->confirm('Clear wp-cubi transient cache ?', true)) {
+                $this->sendWebhookHttpRequest($site_url, 'clear-wp-cubi-transient-cache');
+            }
+        }
+
         return $deployed;
     }
 
@@ -248,5 +275,19 @@ trait DeployTrait
         }
 
         $cmd->run();
+    }
+
+    protected function sendWebhookHttpRequest($site_url, $webhook)
+    {
+        $url = $site_url;
+        $url .= "?wp-cubi-webhooks-run=" . $webhook;
+        $url .= "&wp-cubi-webhooks-secret=" . \RoboFile::WP_CUBI_WEBHOOKS_SECRET;
+
+        $cmd = new Command('curl');
+        $cmd = $cmd->arg($url)
+            ->getCommand();
+
+        $this->taskExec($cmd)
+            ->run();
     }
 }
