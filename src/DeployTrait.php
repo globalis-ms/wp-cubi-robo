@@ -2,6 +2,8 @@
 
 namespace Globalis\WP\Cubi\Robo;
 
+use Globalis\Robo\Core\Command;
+
 trait DeployTrait
 {
     public function deploy($environment, $gitRevision, $options = ['ignore-assets' => false, 'ignore-composer' => false])
@@ -51,6 +53,7 @@ trait DeployTrait
 
         if ($deployed) {
             $site_url = $config['WEB_SCHEME'] . '://' . $config['WEB_DOMAIN'] . $config['WEB_PATH'];
+            $site_url = self::trailingslashit($site_url);
 
             $this->io()->newLine();
 
@@ -77,7 +80,7 @@ trait DeployTrait
 
             // Ping home url to generate new cache
 
-            $cmd = new Command('curl');
+            $cmd = new Command('curl -S -s -o /dev/null');
             $cmd = $cmd->arg($site_url)
                 ->getCommand();
 
@@ -290,7 +293,7 @@ trait DeployTrait
 
     protected function sendWebhookHttpRequest($site_url, $webhook)
     {
-        $url = $site_url;
+        $url = self::trailingslashit($site_url);
         $url .= "?wp-cubi-webhooks-run=" . $webhook;
         $url .= "&wp-cubi-webhooks-secret=" . \RoboFile::WP_CUBI_WEBHOOKS_SECRET;
 
