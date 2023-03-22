@@ -79,13 +79,6 @@ trait WordPressTrait
          ->startDelimiter($startPlaceholder)
          ->endDelimiter($endPlaceholder)
          ->run();
-
-        $this->taskReplacePlaceholders(self::trailingslashit(\RoboFile::ROOT) . 'RoboFile.php')
-         ->from(array_keys($settings))
-         ->to($settings)
-         ->startDelimiter($startPlaceholder)
-         ->endDelimiter($endPlaceholder)
-         ->run();
     }
 
     protected function wpDbCreate()
