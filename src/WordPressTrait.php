@@ -371,4 +371,15 @@ trait WordPressTrait
             ->arg('view_query_monitor')
             ->execute();
     }
+
+    protected function loadWpConfig()
+    {
+        $config_vars = \RoboFile::ROOT . '/' . \RoboFile::PATH_FILE_CONFIG_VARS;
+        $config_application = \RoboFile::ROOT . '/' . \RoboFile::PATH_FILE_CONFIG_APPLICATION;
+        $config_local = \RoboFile::ROOT . '/' . \RoboFile::PATH_FILE_CONFIG_LOCAL;
+
+        defined('WP_CUBI_CONFIG') || define('WP_CUBI_CONFIG', require $config_vars);
+        require_once $config_application;
+        require_once $config_local;
+    }
 }

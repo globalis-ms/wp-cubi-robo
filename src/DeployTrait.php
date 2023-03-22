@@ -293,9 +293,15 @@ trait DeployTrait
 
     protected function sendWebhookHttpRequest($site_url, $webhook)
     {
+        $this->loadWpConfig();
+
+        if (!defined('WP_CUBI_WEBHOOKS_SECRET')) {
+            return;
+        }
+
         $url = self::trailingslashit($site_url);
         $url .= "?wp-cubi-webhooks-run=" . $webhook;
-        $url .= "&wp-cubi-webhooks-secret=" . \RoboFile::WP_CUBI_WEBHOOKS_SECRET;
+        $url .= "&wp-cubi-webhooks-secret=" . WP_CUBI_WEBHOOKS_SECRET;
 
         $cmd = new Command('curl');
         $cmd = $cmd->arg($url)
