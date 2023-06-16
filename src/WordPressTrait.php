@@ -420,8 +420,14 @@ See the official ACF PRO documentation for more information on https://www.advan
             ->arg('https://connect.advancedcustomfields.com')
             ->run();
 
-        $this->taskComposer('require')
+        $task = $this->taskComposer('require')
             ->arg('wpengine/advanced-custom-fields-pro')
             ->run();
+
+        $this->writeln("");
+
+        if ($task->wasSuccessful()) {
+            $this->io()->success('ACF PRO was successfully installed.');
+        }
     }
 }
