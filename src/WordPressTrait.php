@@ -23,10 +23,10 @@ trait WordPressTrait
         $this->io()->newLine();
         $this->wpDbCreate();
         $this->wpCoreInstall();
+        $this->wpMaybeInstallAcfPro();
         $this->wpLanguageInstall(null, ['activate' => true]);
         $this->wpUpdateTimezone();
         $this->wpClean();
-        $this->wpMaybeInstallAcfPro();
         $this->wpActivatePlugins();
 
         $this->io()->success('WordPress is ready.');
