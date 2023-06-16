@@ -26,6 +26,7 @@ trait WordPressTrait
         $this->wpLanguageInstall(null, ['activate' => true]);
         $this->wpUpdateTimezone();
         $this->wpClean();
+        $this->wpMaybeInstallAcfPro();
         $this->wpActivatePlugins();
 
         $this->io()->success('WordPress is ready.');
@@ -374,5 +375,53 @@ trait WordPressTrait
         defined('WP_CUBI_CONFIG') || define('WP_CUBI_CONFIG', require $config_vars);
         require_once $config_application;
         require_once $config_local;
+    }
+
+    protected function wpMaybeInstallAcfPro()
+    {
+        if ($this->io()->confirm('Do you want to install ACF PRO (paid license key required) ?', false)) {
+            $this->wpInstallAcfPro();
+        }
+    }
+
+    public function wpInstallAcfPro($options = ['username' => '', 'password' => ''])
+    {
+        $this->io()->info(
+            "Installation of ACF PRO is made using connect.advancedcustomfields.com private Composer repository and require HTTP basic authentication.\n
+The username is the ACF PRO license key, and the password is the site URL (including https:// or http://) that the license is registered for (not necessarily the site URL of this project).\n
+See the official ACF PRO documentation for more information on https://www.advancedcustomfields.com/resources/installing-acf-pro-with-composer/"
+        );
+
+        if (!empty($options['username'])) {
+            $username = $options['username'];
+        } else {
+            $username = $this->io()->ask('connect.advancedcustomfields.com username (license key)');
+        }
+
+        if (!empty($options['password'])) {
+            $password = $options['password'];
+        } else {
+            $password = $this->io()->ask('connect.advancedcustomfields.com password (license site URL)');
+        }
+
+        $this->taskComposer('remove')
+            ->arg('wpackagist-plugin/advanced-custom-fields')
+            ->run();
+
+        $this->taskComposer('config')
+            ->arg('http-basic.connect.advancedcustomfields.com')
+            ->arg($username)
+            ->arg($password)
+            ->run();
+
+        $this->taskComposer('config')
+            ->arg('repositories.advancedcustomfields')
+            ->arg('composer')
+            ->arg('https://connect.advancedcustomfields.com')
+            ->run();
+
+        $this->taskComposer('require')
+            ->arg('wpengine/advanced-custom-fields-pro')
+            ->run();
     }
 }
