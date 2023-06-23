@@ -430,4 +430,59 @@ See the official ACF PRO documentation for more information on https://www.advan
             $this->io()->success('ACF PRO was successfully installed.');
         }
     }
+
+    protected function wpShowAvailablePatch()
+    {
+        $cmd = new Command('composer');
+        $process = $cmd->arg('outdated')
+            ->arg('roots/wordpress')
+            ->option('--patch-only')
+            ->option('--strict')
+            ->option('--format', 'json')
+            ->executeWithoutException();
+
+        $json = $process->getOutput();
+
+        $data = json_decode($json, true);
+
+        if (!is_array($data)) {
+            return false;
+        }
+
+        if (!isset($data['versions'])) {
+            return false;
+        }
+
+        if (!isset($data['latest'])) {
+            return false;
+        }
+
+        $currentVersion = current($data['versions']);
+        $latestVersion = $data['latest'];
+
+        if (version_compare($currentVersion, $latestVersion) >= 0) {
+            return false;
+        }
+
+        return $latestVersion;
+    }
+
+    public function wpApplyAvailablePatch()
+    {
+        $version = $this->wpShowAvailablePatch();
+
+        if (empty($version)) {
+            $this->io()->info("There is no available patch for package roots/wordpress.");
+            return;
+        }
+
+        $this->taskComposer('require')
+            ->arg('roots/wordpress:~' . $version)
+            ->option('--with-all-dependencies')
+            ->run();
+
+        $this->taskComposer('bump')
+            ->arg('roots/wordpress')
+            ->run();
+    }
 }
