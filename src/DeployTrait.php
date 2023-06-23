@@ -16,6 +16,13 @@ trait DeployTrait
             $options['ignore-composer'] = false;
         }
 
+        if (!empty($this->wpShowAvailablePatch())) {
+            $this->io()->warning("You are about to deploy an outdated version of WordPress core.\nFor security purposes, it is recommended to update to latest patch first.\n\nRun following command to run composer update :\n\n./vendor/bin/robo wp:apply-available-patch\n\nNote: major and minor version won't change.\n");
+            if ($this->io()->confirm('Abort deployment ?', true)) {
+                exit;
+            }
+        }
+
         $this->io()->title('Deploy version ' . $gitRevision . ' to ' . $environment);
 
         if (!file_exists($this->fileVarsLocal($environment)) || \RoboFile::CONFIRM_CONFIG_BEFORE_DEPLOY) {
