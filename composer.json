@@ -18,7 +18,7 @@
         "issues": "https://github.com/globalis-ms/wp-cubi-robo/issues"
     },
     "require": {
-        "php": ">=8.0 <8.4",
+        "php": ">=8.0 <8.5",
         "consolidation/robo": "^5.1",
         "globalis/robo-task": "^2.3.1"
     },
